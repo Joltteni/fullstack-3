@@ -1,12 +1,16 @@
 const express = require('express')
 const app = express()
 app.use(express.json())
+app.use(express.static('dist'))
 var morgan = require('morgan')
 
 //cors
 const cors = require('cors')
 app.use(cors())
 
+//TODO morgan('tiny')
+
+//TODO tee tää vaa posteille
 app.use(morgan((tokens, req, res) => {
   return [
     tokens.method(req, res),
