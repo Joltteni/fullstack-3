@@ -20,6 +20,7 @@ const App = () => {
     personsService
       .getAll()
       .then(response => {
+        console.log(response)
         setPersons(response)
       })  
 }, [persons])
@@ -30,7 +31,7 @@ const App = () => {
     const phoneBookObject = {
       name: newName,
       number: newNumber,
-      id: persons.length+1 //randomize servul
+      id: crypto.randomUUID() //parempi randomize
     }
     if (!persons.some(person => person.name === newName)) { //nimi listassa?
     personsService.create(phoneBookObject)
