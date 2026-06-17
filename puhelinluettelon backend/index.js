@@ -1,6 +1,22 @@
 const express = require('express')
 const app = express()
 app.use(express.json())
+var morgan = require('morgan')
+
+//cors
+const cors = require('cors')
+app.use(cors())
+
+app.use(morgan((tokens, req, res) => {
+  return [
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, 'content-length'), '-',
+    tokens['response-time'](req, res), 'ms',
+    JSON.stringify(req.body) //jsoniks info postist
+  ].join(' ')
+}))
 
 let persons = [
   {
@@ -24,9 +40,11 @@ let persons = [
     number: "39-23-6423122"
   }
 ]
+
 app.get('/', (request, response) => {
   response.send('<h1>Hello World!</h1>') //etusivu
 })
+
 
 app.get('/api/persons', (request, response) => {
   response.json(persons)
@@ -63,14 +81,15 @@ app.post('/api/persons', (request, response) => {
   else if(!person.number){
     return response.status(400).json({ error: 'number not set'})
   }
-  else if(persons.find(p => p.name === person.name)){
+  if(persons.find(p => p.name === person.name)){
     return response.status(409).json({ error: 'name must be unique'})
   }
 
   person.id = String(Math.floor(Math.random() * 20000)) //20k väli
   persons = persons.concat(person)
+  
 
-  response.status(201).send(persons)
+  response.status(200).send(persons)
 })
 
 app.get('/info', (request, response) => {
