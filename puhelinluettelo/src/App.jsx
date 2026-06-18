@@ -20,10 +20,9 @@ const App = () => {
     personsService
       .getAll()
       .then(response => {
-        console.log(response)
         setPersons(response)
       })  
-}, [persons])
+}, []) //[persons] (localis oli)
 
   const addPhoneNumber = (event) => {
     event.preventDefault()
@@ -34,29 +33,45 @@ const App = () => {
       id: crypto.randomUUID() //parempi randomize
     }
     if (!persons.some(person => person.name === newName)) { //nimi listassa?
-    personsService.create(phoneBookObject)
-    setPersons(persons.concat(phoneBookObject))
+      //response servult nii ei kaada koko sivua
+    personsService.create(phoneBookObject).then(response => {
+      setPersons(persons.concat(response.data)) 
+    })
+    if (newName != null || newName !=''){ //pikkune hienosäätö, ei ois sinänsä tarvinnu
     setSuccessMessage(`Added ${newName}`)
     setTimeout(() => {
           setSuccessMessage(null)
         }, 5000)
     }
+  }
   
-    else {
-      if (!window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) return
-      let updatePerson=persons.find(person => person.name === newName)
-      personsService.update(updatePerson.id,phoneBookObject)
-      .then(() => {
-          setSuccessMessage(`Updated ${updatePerson.name}'s phone number`)
-    setTimeout(() => {
-          setSuccessMessage(null)
-        }, 5000)})
-        .catch (() => {
-           setErrorMessage(`${updatePerson.name} has already been removed from the server`)
+else {
+  if (!window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) return
+
+  const updatePerson = persons.find(person => person.name === newName)
+
+  const changedPerson = {
+    ...updatePerson,
+    number: newNumber
+  }
+
+  personsService.update(updatePerson.id, changedPerson)
+    .then(response => {
+      setSuccessMessage(`Updated ${updatePerson.name}'s phone number`)
+
+      setPersons(persons.map(person =>
+        person.id !== updatePerson.id ? person : response.data
+      ))
+
+      setTimeout(() => {
+        setSuccessMessage(null)
+      }, 5000)
+    })
+    .catch(() => {
+      setErrorMessage(`${updatePerson.name} has already been removed from the server`)
       setTimeout(() => setErrorMessage(null), 5000)
-        }
-        )
-    }
+    })
+}
     setNewName('') //input tyhjäks
     setNewNumber('') //input tyhjäks
   }
