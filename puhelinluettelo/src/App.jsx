@@ -32,17 +32,25 @@ const App = () => {
       number: newNumber,
       id: crypto.randomUUID() //parempi randomize
     }
-    if (!persons.some(person => person.name === newName)) { //nimi listassa?
-      //response servult nii ei kaada koko sivua
-    personsService.create(phoneBookObject).then(response => {
-      setPersons(persons.concat(response.data)) 
-    })
-    if (newName != null || newName !=''){ //pikkune hienosäätö, ei ois sinänsä tarvinnu
-    setSuccessMessage(`Added ${newName}`)
-    setTimeout(() => {
+   if (!persons.some(person => person.name === newName)) { //nimi listassa?
+    personsService
+      .create(phoneBookObject)
+      .then(response => {
+        setPersons(persons.concat(response.data))
+        setSuccessMessage(`Added ${newName}`)
+        setTimeout(() => {
           setSuccessMessage(null)
         }, 5000)
-    }
+      })
+      .catch(error => {
+        console.log(error.response.data)
+        setErrorMessage(
+          error.response.data.error
+        )
+        setTimeout(() => {
+          setErrorMessage(null)
+        }, 5000)
+      })
   }
   
 else {
@@ -67,8 +75,12 @@ else {
         setSuccessMessage(null)
       }, 5000)
     })
-    .catch(() => {
-      setErrorMessage(`${updatePerson.name} has already been removed from the server`)
+    .catch((error) => {
+      //setErrorMessage(`${updatePerson.name} has already been removed from the server`)
+        console.log(error.response.data)
+        setErrorMessage(
+          error.response.data.error
+        )
       setTimeout(() => setErrorMessage(null), 5000)
     })
 }

@@ -1,7 +1,7 @@
-POST https://fullstack-3-0j74.onrender.com/api/persons
+POST http://localhost:3001/api/persons
 Content-Type: application/json
 
 {
-"name": "m3atti Mellas",
+"name": "m3aatti Mellas",
 "number": "123"
 }

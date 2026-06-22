@@ -8,7 +8,7 @@ var morgan = require('morgan')
 
 //skippaa posti tiny muodos, vissii haluttii tällee tuo tehtävä?
 app.use(morgan('tiny', {
-  skip: (req) => req.method === "POST"
+  skip: (req) => req.method === 'POST'
 }))
 
 //cors
@@ -16,39 +16,16 @@ const cors = require('cors')
 app.use(cors())
 
 app.use(morgan((tokens, req, res) => {
-  if (req.method === "POST")
-  return [
-    tokens.method(req, res),
-    tokens.url(req, res),
-    tokens.status(req, res),
-    tokens.res(req, res, 'content-length'), '-',
-    tokens['response-time'](req, res), 'ms',
-    JSON.stringify(req.body) //jsoniks info postist
-  ].join(' ')
+  if (req.method === 'POST')
+    return [
+      tokens.method(req, res),
+      tokens.url(req, res),
+      tokens.status(req, res),
+      tokens.res(req, res, 'content-length'), '-',
+      tokens['response-time'](req, res), 'ms',
+      JSON.stringify(req.body) //jsoniks info postist
+    ].join(' ')
 }))
-
-let persons = [
-  {
-    id: "1",
-    name: "Arto Hellas",
-    number: "040-123456"
-  },
-  {
-    id: "2",
-    name: "Ada Lovelace",
-    number: "39-44-5323523" 
-  },
-  {
-    id: "3",
-    name: "Dan Abramov",
-    number: "12-43-234345"
-  },
-  {
-    id: "4",
-    name: "Mary Poppendieck",
-    number: "39-23-6423122"
-  }
-]
 
 app.get('/', (request, response) => {
   response.send('<h1>Hello World!</h1>') //etusivu
@@ -83,9 +60,8 @@ app.delete('/api/persons/:id', (request, response, next) => {
 })
 
 //lisää uus
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
-
   if (!body.name && !body.number) {
     return response.status(400).json({ error: 'name and number not set' })
   } else if (!body.name) {
@@ -99,9 +75,11 @@ app.post('/api/persons', (request, response) => {
     number: body.number,
   })
 
-  person.save().then(person => {
-    response.status(201).json(person)
-  })
+  person.save()
+    .then(savedPerson => {
+      response.status(201).json(savedPerson)
+    })
+    .catch(error => next(error))
 })
 app.put('/api/persons/:id', async (request, response) => {
   try {
@@ -130,6 +108,13 @@ app.get('/info', (request, response) => {
 //error middleware
 const errorHandler = (error, request, response, next) => {
   console.log(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).json({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }
+
   next(error)
 }
 

@@ -15,18 +15,31 @@ mongoose.set('strictQuery', false)
 mongoose.connect(url, { family: 4 })
 
 const phonebookSchema = new mongoose.Schema({
-  name: String,
-  number: String,
+  name: {
+    type: String,
+    minLength: 3,
+    required: true
+  },
+  number: {
+    type: String,
+    minLength: 8,
+    validate: {
+      validator: function(v) {
+        return /^\d{2,3}-\d+$/.test(v)
+      },
+    },
+    required: true
+  }
 })
 
 const Phonebook = mongoose.model('Phonebook', phonebookSchema)
 
 const person = new Phonebook({
-    name: name,
-    number: number,
+  name: name,
+  number: number,
 })
 
-person.save().then(result => {
+person.save().then(() => { //result =>
   console.log('person saved!')
   mongoose.connection.close()
 })
